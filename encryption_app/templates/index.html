@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security System Encryption</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="{{ url_for('static', filename='visualize.js') }}"></script>
+    <script>
+        function generateKeys() {
+            fetch('/generate_keys')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('private_key_container').style.display = 'block';
+                    document.getElementById('public_key_container').style.display = 'block';
+                    document.getElementById('private_key').innerText = data.private_key;
+                    document.getElementById('public_key').innerText = data.public_key;
+                });
+        }
+
+        function fetchKeys() {
+            fetch('/get_keys')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('private_key_container').style.display = 'block';
+                    document.getElementById('public_key_container').style.display = 'block';
+                    document.getElementById('private_key').innerText = data.private_key;
+                    document.getElementById('public_key').innerText = data.public_key;
+                });
+        }
+
+        function fetchAESKey() {
+            fetch('/get_aes_key')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('aes_key').innerText = data.aes_key;
+                    document.getElementById('aes_key_container').style.display = 'block';
+                });
+        }
+    </script>
+</head>
+<body>
+    <h1>Security System Encryption</h1>
+    
+    <div>
+        <h2>Asymmetric Encryption (RSA)</h2>
+        <div class="tooltip">
+            <button onclick="generateKeys()">Generate RSA Keys</button>
+            <span class="tooltiptext">Generates RSA keys</span>
+        </div>
+        <div class="tooltip">
+            <button onclick="fetchKeys()">Show RSA Keys</button>
+            <span class="tooltiptext">Displays the generated RSA keys</span>
+        </div>
+        <div id="private_key_container" style="display: none;">
+            <h2>Private Key:</h2>
+            <pre id="private_key"></pre>
+        </div>
+        <div id="public_key_container" style="display: none;">
+            <h2>Public Key:</h2>
+            <pre id="public_key"></pre>
+        </div>
+        <form action="/encrypt_message" method="post">
+            <label for="message">Message to Encrypt:</label>
+            <input type="text" id="message" name="message" value="{{ messages['message'] if 'message' in messages else '' }}" required>
+            <button type="submit">Encrypt</button>
+        </form>
+        {% if 'ciphertext' in messages %}
+            <h2>Encrypted Message:</h2>
+            <textarea id="ciphertext" rows="4" readonly>{{ messages['ciphertext'] }}</textarea>
+        {% endif %}
+        <h2>Decrypt RSA Message</h2>
+        <form action="/decrypt_message" method="post">
+            <label for="encrypted_message">Encrypted Message:</label>
+            <textarea id="encrypted_message" name="encrypted_message" rows="4" required></textarea>
+            <label for="private_key">Enter Private Key:</label>
+            <textarea id="private_key" name="private_key" rows="15" required placeholder="Paste the entire private key here, including headers and footers"></textarea>
+            <button type="submit">Decrypt</button>
+        </form>
+        {% if 'decrypted_message' in messages %}
+            <h2>Decrypted Message:</h2>
+            <p>{{ messages['decrypted_message'] }}</p>
+        {% endif %}
+    </div>
+
+    <div>
+        <h2>Symmetric Encryption (AES)</h2>
+        <form action="/generate_aes_key" method="get">
+            <button type="submit">Generate AES Key</button>
+        </form>
+        <div class="tooltip">
+            <button onclick="fetchAESKey()">Show AES Key</button>
+            <span class="tooltiptext">Displays the generated AES key</span>
+        </div>
+        <div id="aes_key_container" style="display: none;">
+            <pre id="aes_key"></pre>
+        </div>
+        <form action="/encrypt_aes" method="post">
+            <label for="message">Message to Encrypt:</label>
+            <input type="text" id="message" name="message" value="{{ messages['message'] if 'message' in messages else '' }}" required>
+            <button type="submit">Encrypt</button>
+        </form>
+        {% if 'aes_ciphertext' in messages %}
+            <h2>Encrypted Message (AES):</h2>
+            <textarea id="aes_ciphertext" rows="4" readonly>{{ messages['aes_ciphertext'] }}</textarea>
+        {% endif %}
+        <h2>Decrypt AES Message</h2>
+        <form action="/decrypt_aes" method="post">
+            <label for="encrypted_message">Encrypted Message:</label>
+            <textarea id="encrypted_message" name="encrypted_message" rows="4" required></textarea>
+            <label for="aes_key">Enter AES Key:</label>
+            <input type="text" id="aes_key_input" name="aes_key" required>
+            <button type="submit">Decrypt</button>
+        </form>
+        {% if 'decrypted_message' in messages %}
+            <h2>Decrypted Message (AES):</h2>
+            <p>{{ messages['decrypted_message'] }}</p>
+        {% endif %}
+    </div>
+</body>
+</html>
